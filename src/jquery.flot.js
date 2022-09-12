@@ -3021,13 +3021,44 @@ Licensed under the MIT license.
 
         function drawSeriesPoints(series) {
             function plotPoints(datapoints, radius, fillStyle, offset, shadow, axisx, axisy, symbol) {
-                var points = datapoints.points, ps = datapoints.pointsize;
+                var data,
+                    thresholdBelow;
+                if (series.originSeries) {
+        data = series.originSeries.data,
+                thresholdBelow = series.originSeries.threshold.below;
+    }
+    else {
+        data = series.data;
+    }
+
+var points = datapoints.points, ps = datapoints.pointsize;
 
                 for (var i = 0; i < points.length; i += ps) {
                     var x = points[i], y = points[i + 1];
                     if (x == null || x < axisx.min || x > axisx.max || y < axisy.min || y > axisy.max) {
                         continue;
                     }
+                    if (i % 2 === 0) {
+            var isValid = false;
+
+            if (!thresholdBelow || y < thresholdBelow) {
+                for (var j = 0; j < data.length; j++) {
+                    var value = data[j];
+
+                    if (x == value[0] && y == value[1]) {
+                        isValid = true;
+
+                        data = data.slice(j + 1);
+
+                        break;
+                    }
+                };
+            }
+
+            if (!isValid) {
+                continue;
+            }
+        }
 
                     ctx.beginPath();
                     x = axisx.p2c(x);
@@ -3053,7 +3084,8 @@ Licensed under the MIT license.
             var lw = series.points.lineWidth,
                 sw = series.shadowSize,
                 radius = series.points.radius,
-                symbol = series.points.symbol;
+                symbol = series.points.symbol,
+                datapoints = series.datapoints;
 
             // If the user sets the line width to 0, we change it to a very
             // small value. A line width of 0 seems to force the default of 1.
@@ -3069,17 +3101,17 @@ Licensed under the MIT license.
                 var w = sw / 2;
                 ctx.lineWidth = w;
                 ctx.strokeStyle = "rgba(0,0,0,0.1)";
-                plotPoints(series.datapoints, radius, null, w + w / 2, true,
+                plotPoints(datapoints, radius, null, w + w / 2, true,
                            series.xaxis, series.yaxis, symbol);
 
                 ctx.strokeStyle = "rgba(0,0,0,0.2)";
-                plotPoints(series.datapoints, radius, null, w / 2, true,
+                plotPoints(datapoints, radius, null, w / 2, true,
                            series.xaxis, series.yaxis, symbol);
             }
 
             ctx.lineWidth = lw;
             ctx.strokeStyle = series.points.strokeColor || series.color;
-            plotPoints(series.datapoints, radius,
+            plotPoints(datapoints, radius,
                        getFillStyle(series.points, series.color), 0, false,
                        series.xaxis, series.yaxis, symbol);
             ctx.restore();
