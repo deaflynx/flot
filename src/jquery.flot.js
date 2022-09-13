@@ -3024,14 +3024,14 @@ Licensed under the MIT license.
                 var data,
                     thresholdBelow;
                 if (series.originSeries) {
-        data = series.originSeries.data,
-                thresholdBelow = series.originSeries.threshold.below;
-    }
-    else {
-        data = series.data;
-    }
+                    data = series.originSeries.data;
+                    thresholdBelow = series.originSeries.threshold.below;
+                    console.warn('threshold data')
+                } else {
+                    data = series.data;
+                }
 
-var points = datapoints.points, ps = datapoints.pointsize;
+                var points = datapoints.points, ps = datapoints.pointsize;
 
                 for (var i = 0; i < points.length; i += ps) {
                     var x = points[i], y = points[i + 1];
@@ -3039,26 +3039,26 @@ var points = datapoints.points, ps = datapoints.pointsize;
                         continue;
                     }
                     if (i % 2 === 0) {
-            var isValid = false;
+                        var isValid = false;
 
-            if (!thresholdBelow || y < thresholdBelow) {
-                for (var j = 0; j < data.length; j++) {
-                    var value = data[j];
+                        if (!thresholdBelow || y < thresholdBelow) {
+                            for (var j = 0; j < data.length; j++) {
+                                var value = data[j];
 
-                    if (x == value[0] && y == value[1]) {
-                        isValid = true;
+                                if (x == value[0] && y == value[1]) {
+                                    isValid = true;
 
-                        data = data.slice(j + 1);
+                                    data = data.slice(j + 1);
 
-                        break;
+                                    break;
+                                }
+                            };
+                        }
+
+                        if (!isValid) {
+                            continue;
+                        }
                     }
-                };
-            }
-
-            if (!isValid) {
-                continue;
-            }
-        }
 
                     ctx.beginPath();
                     x = axisx.p2c(x);
